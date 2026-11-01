@@ -19,6 +19,8 @@ test('owner approves funded jobs, confirms a simulated receipt and approves newl
   await page.getByRole('button',{name:'Review plan',exact:true}).click();
   await expect(page.getByRole('dialog').getByText('Oak Street kitchen')).toBeVisible();
   await page.getByRole('button',{name:/Approve \d+ jobs/}).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('.metrics').getByText('4 jobs committed')).toBeVisible();
   await page.reload();
   await expect(page.locator('.metrics').getByText('4 jobs committed')).toBeVisible();
   await page.getByRole('button',{name:'Decision log'}).click();
@@ -54,7 +56,7 @@ test('recovery scenarios are read-only, analyst shows tools and customer link ex
   const current=await page.request.get('/api/state').then(r=>r.json());expect(current.state.receipts).toEqual([]);expect(current.state.opening).toBe(180000);await customer.close();
 });
 test('a payment reversal arrives through the event stream and blocks new approvals',async({page})=>{
-  await page.goto('/');const request=async(path:string,data:unknown)=>page.request.post(`/api/${path}`,{headers:{'X-CrewFloat':'1'},data}).then(r=>r.json());
+  await page.goto('/');await expect(page.getByRole('heading',{name:'Keep the week moving.'})).toBeVisible();const request=async(path:string,data:unknown)=>page.request.post(`/api/${path}`,{headers:{'X-CrewFloat':'1'},data}).then(r=>r.json());
   let state=await page.request.get('/api/state').then(r=>r.json()).then(x=>x.state);
   state=await request('demo/payment',{revision:state.revision,jobId:'oak',stage:'captured'});
   state=await request('receipts/available',{revision:state.revision,receiptId:state.receipts[0].id,net:155000,reference:'SIM browser check',confirmed:true});

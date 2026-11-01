@@ -18,7 +18,7 @@
 
 Owner APIs and financial evidence can be protected with a signed expiring access cookie. Listening beyond loopback requires a strong access code and HTTPS for a remote origin. Public customer checkout remains separate from the owner workspace.
 
-Customer checkout no longer loads the owner dashboard. The entry script is approximately 238 KB; the scheduler/dashboard code is a separate lazy chunk. The remaining owner chunk is large because of its component libraries; this is not a network-performance benchmark.
+Customer checkout does not load the owner dashboard. The entry script is approximately 244 KB, and the owner application shell is approximately 76 KB. Bryntum Scheduler (approximately 3.5 MB) and AG Grid (approximately 1.2 MB) now load in separate asynchronous chunks, so they no longer block the cash controls and recovery analyst. These are build sizes before compression, not network-performance measurements. Versioned assets have immutable browser caching and are served directly by Pages.
 
 Development bootstrap uses a single initial workspace request. Browser checks build and launch a separate test instance, without touching the active demo or using merchant/model credentials.
 

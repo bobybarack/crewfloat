@@ -1,42 +1,19 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Scheduler,StringHelper } from '@bryntum/scheduler';
-import '@bryntum/scheduler/fontawesome/css/fontawesome.css';
-import '@bryntum/scheduler/fontawesome/css/solid.css';
-import '@bryntum/scheduler/scheduler.css';
-import '@bryntum/scheduler/svalbard-light.css';
-import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, ModuleRegistry, themeQuartz, type ColDef } from 'ag-grid-community';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, ArrowsClockwise, CalendarBlank, Check, CheckCircle, Clock, CurrencyDollar, FileText, GearSix, ListChecks, Plus, ShieldCheck, Sparkle, Stack, WarningCircle, X } from '@phosphor-icons/react';
 import { balances, crews, dayLabel, exactMoney, money, plan, unlock, type Job, type Plan, type State } from '../shared/model';
 import RecoveryDesk from './RecoveryDesk';
 import {api} from './client';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
-const gridTheme = themeQuartz.withParams({ accentColor: '#21634f', backgroundColor: '#ffffff', foregroundColor: '#23362e', headerBackgroundColor: '#f5f7f5', borderColor: '#e1e7e2', fontFamily: 'Manrope Variable, sans-serif', fontSize: 12, rowHeight: 54, headerHeight: 40, wrapperBorderRadius: 0 });
 type Envelope = { state: State; mode: 'demo' | 'sandbox'; paypalConfigured: boolean; aiConfigured: boolean; accessRequired:boolean };
 function Modal({ title, children, onClose, error }: { title: string; children: ReactNode; onClose: () => void; error?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { ref.current?.showModal(); }, []);
   return <dialog ref={ref} onCancel={onClose} aria-label={title}><header><h2>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close dialog"><X size={20}/></button></header>{error && <div className="alert error" role="alert">{error}</div>}{children}</dialog>;
 }
-function Timeline({ proposal, state, onJob }: { proposal: Plan; state: State; onJob: (job: Job) => void }) {
-  const host = useRef<HTMLDivElement>(null);
-  const callback = useRef(onJob); callback.current = onJob;
-  useEffect(() => {
-    if (!host.current) return;
-    const scheduler = new Scheduler({
-      appendTo: host.current, height: 260, startDate: new Date(2026, 9, 12), endDate: new Date(2026, 9, 17),
-      viewPreset: 'dayAndWeek', rowHeight: 88, barMargin: 18, readOnly: true,
-      eventRenderer:({eventRecord})=>StringHelper.encodeHtml(String(eventRecord.name)),
-      columns: [{ text: 'CREW', field: 'name', width: 164 }],
-      resources: crews.map(c => ({ id: c.id, name: c.name })),
-      events: proposal.assignments.map(a => ({ id: a.jobId, resourceId: a.crewId, name: state.jobs.find(j => j.id === a.jobId)!.name, startDate: new Date(2026, 9, 12 + a.start), endDate: new Date(2026, 9, 12 + a.end), eventColor: proposal.atRisk.some(p=>p.jobId===a.jobId)?'#934f36':state.approved.some(p => p.jobId === a.jobId) ? '#21634f' : '#bce0cc', cls: proposal.atRisk.some(p=>p.jobId===a.jobId)?'risk-event':state.approved.some(p => p.jobId === a.jobId) ? 'approved-event' : 'proposed-event' })),
-      features: { eventEdit: false, eventMenu: false, scheduleMenu: false, headerMenu: false, cellMenu: false, eventTooltip: false },
-      listeners: { eventClick: ({ eventRecord }: any) => { const job = state.jobs.find(j => j.id === eventRecord.id); if (job) callback.current(job); } }
-    });
-    return () => scheduler.destroy();
-  }, [proposal, state]);
-  return <div className="timeline-scroll"><div className="timeline" ref={host}/></div>;
+const SchedulerTimeline = lazy(() => import('./Timeline'));
+const JobsLedger = lazy(() => import('./JobsLedger'));
+function Timeline(props: {proposal: Plan; state: State; onJob: (job: Job) => void}) {
+  return <Suspense fallback={<div className="timeline-scroll"><div className="timeline" style={{height:260}} role="status">Loading crew schedule…</div></div>}><SchedulerTimeline {...props}/></Suspense>;
 }
 const sampleBrief = 'Customer: Iris Cole. Job: Ash Street tap repair. Materials cost $100. Total job value $400. No deposit required ($0). One day of repair work, earliest Thursday and completed by Friday, October 16, 2026.';
 const sampleJob: Omit<Job, 'id'> = { name: 'Ash Street tap repair', customer: 'Iris Cole', cost: 10000, value: 40000, deposit: 0, duration: 1, earliest: 3, deadline: 4, skill: 'repair', note: 'Example job, entered manually. Review before adding.' };
@@ -62,13 +39,6 @@ export default function App() {
   async function mutate(path: string, body: object, message: string, close = true) {
     await run(async () => { await api(path, { revision: state!.revision, ...body }); await refresh(); setNotice(message); if (close) setDialog(''); });
   }
-  const cols = useMemo<ColDef[]>(() => [
-    { field: 'name', headerName: 'Job / customer', flex: 2, minWidth: 200 },
-    { field: 'cost', headerName: 'Materials', valueFormatter: p => money(p.value), minWidth: 120, flex: 1 },
-    { field: 'value', headerName: 'Work value', valueFormatter: p => money(p.value), minWidth: 120, flex: 1 },
-    { field: 'depositLabel', headerName: 'Deposit', minWidth: 150, flex: 1 },
-    { field: 'status', headerName: 'Plan status', minWidth: 145, flex: 1, cellClass: p => p.value === 'Approved' ? 'cell-green' : p.value === 'Proposed' ? 'cell-proposed' : 'cell-amber' }
-  ], []);
   if (!state || !proposal || !cash || !envelope) return <main className="loading"><Stack size={38}/><h1>CrewFloat</h1><p>{error || 'Opening your workspace…'}</p>{error && <button onClick={() => refresh().catch(e => setError(e.message))}>Retry</button>}</main>;
   const selectedReceipt = selected && state.receipts.find(r => r.jobId === selected.id);
   const selectedBlocked = selected && proposal.blocked.some(b=>b.job.id===selected.id)?{reason:unlock(state,selected.id).reason}:undefined;
@@ -98,7 +68,7 @@ export default function App() {
           <div className="planner-layout"><div className="planner-main">
             <section className="recommendation"><div className="recommend-icon"><Sparkle size={23}/></div><div><span className="micro">CASH-CONSTRAINED PLAN</span><h2>{proposal.atRisk.length?'Existing commitments need a funding review.':proposal.added.length ? `${proposal.added.length} more jobs fit your budget.` : state.approved.length ? 'Your approved work is protected.' : 'More available cash is needed.'}</h2><p>{proposal.reconciliationRequired?'A restricted payment must be reconciled before further approvals.':proposal.added.length ? `${money(proposal.cost)} in materials unlocks ${money(proposal.value)} of booked work. ${money(proposal.remaining)} remains uncommitted.` : 'Review the jobs awaiting funds before making new commitments.'}</p><span className="fine-print">Rule-based optimization · owner-confirmed usable cash · owner approval required</span></div><button className="button primary" disabled={busy || !proposal.added.length||proposal.reconciliationRequired} onClick={openReview}>Review plan <ArrowRight size={16}/></button></section>
             <section className="panel schedule-panel"><div className="section-heading"><div><h2>Your week, made workable</h2><p>Two crews. Five days. No double commitments.</p></div><span className="calendar-label"><CalendarBlank size={16}/>12–16 Oct</span></div><div className="legend"><span><i className="swatch approved"/>Approved</span><span><i className="swatch proposed"/>Proposed</span><span className="subtle">Click a job for its funding details</span></div><Timeline proposal={proposal} state={state} onJob={openJob}/><footer className="schedule-footer"><ShieldCheck size={16}/><span>Approved jobs stay fixed. New proposals respect crew skills, deadlines and cash.</span></footer></section>
-            <section className="panel jobs-panel"><div className="section-heading"><div><h2>All work on the books <span className="count">{state.jobs.length}</span></h2><p>Review costs and payment status before committing.</p></div><input className="search" aria-label="Search jobs" placeholder="Find a job…" value={query} onChange={e => setQuery(e.target.value)}/></div><div className="grid-wrapper"><AgGridReact theme={gridTheme} rowData={rows} columnDefs={cols} defaultColDef={{ sortable: true, filter: true, resizable: true }} quickFilterText={query} getRowId={p => p.data.id} onRowClicked={e => openJob(e.data)} domLayout="autoHeight"/></div></section>
+            <section className="panel jobs-panel"><div className="section-heading"><div><h2>All work on the books <span className="count">{state.jobs.length}</span></h2><p>Review costs and payment status before committing.</p></div><input className="search" aria-label="Search jobs" placeholder="Find a job…" value={query} onChange={e => setQuery(e.target.value)}/></div><Suspense fallback={<div className="grid-wrapper" role="status">Loading job ledger…</div>}><JobsLedger rows={rows} query={query} onJob={openJob}/></Suspense></section>
           </div><aside className="attention panel"><div className="attention-heading"><span className="attention-icon"><Clock size={19}/></span><h2>Waiting on a way forward</h2><p>{proposal.blocked.length} jobs outside this plan</p></div>{proposal.blocked.length ? proposal.blocked.map(({ job, reason }) => <button className="blocked-job" key={job.id} onClick={() => openJob(job)}><span className="job-tag">{job.skill}</span><strong>{job.name}<ArrowUpRight size={15}/></strong><p>{unlock(state,job.id).reason}</p><div><span>Materials</span><b>{money(job.cost)}</b></div></button>) : <p className="empty">Every job fits the current plan.</p>}<div className="attention-foot"><ShieldCheck size={18}/><p>A promised deposit never counts as spendable cash.</p></div></aside></div>
         </>}
         {page === 'cash' && <div className="cash-layout"><section className="panel"><div className="section-heading"><div><h2>Customer deposits</h2><p>Capture, confirm availability, then review the schedule.</p></div></div>{state.jobs.filter(j => j.deposit).map(job => { const receipt = state.receipts.find(r => r.jobId === job.id); return <button className="payment-row" key={job.id} onClick={() => openJob(job)}><span className="payment-symbol"><CurrencyDollar size={21}/></span><span><strong>{job.name}</strong><small>{job.customer}</small></span><span className="payment-amount"><strong>{money(job.deposit)}</strong><small className={receipt?.status === 'available' ? 'green-text' : ''}>{receipt ? receipt.status === 'available' ? `${exactMoney(receipt.net)} available · owner confirmed` : receipt.status : 'Deposit due'}</small></span><ArrowUpRight size={18}/></button>; })}<div className="cash-note"><WarningCircle size={20}/><p>Captured payments may still be held. Confirm the net amount available after fees and holds before adding it to the planning budget.</p></div></section><section className="panel cash-breakdown"><h2>Cash bridge</h2><div><span>Opening balance · manual</span><strong>{money(state.opening)}</strong></div><div><span>Available receipts</span><strong>+ {money(cash.confirmed - state.opening)}</strong></div><div><span>Protected commitments</span><strong>− {money(state.reserve)}</strong></div><div><span>Approved materials</span><strong>− {money(cash.committed)}</strong></div><div className="total"><span>Available to plan</span><strong>{money(cash.free)}</strong></div><button className="button secondary" onClick={openCash}>Edit cash inputs</button><p className="fine-print">No bank feed is connected. All opening balances and availability confirmations are entered by the owner.</p></section></div>}

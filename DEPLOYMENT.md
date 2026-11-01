@@ -6,11 +6,11 @@ Published November 1, 2026: [live demonstration](https://crewfloat.pages.dev) an
 
 ## Architecture
 
-- Cloudflare Pages project `crewfloat` serves the Vite production assets.
+- Cloudflare Pages project `crewfloat` serves Vite assets directly, with immutable caching for versioned asset filenames. Only `/api/*` invokes the Pages Function.
 - Its advanced-mode Worker forwards `/api/*` through the `API` service binding to `crewfloat-api`. The backend has no public workers.dev endpoint.
 - Each visitor is routed to a separate SQLite-backed `CrewWorkspace` Durable Object using a random HTTP-only workspace cookie. Existing revision checks, SQL transactions and session cookies still apply.
 - Customer links contain a workspace hash prefix plus 128 random bits. The hash routes the link without disclosing the workspace cookie. The customer API returns only its scoped job and payment status.
-- Server-sent events carry workspace revisions. Customer pages load without the large owner Scheduler bundle.
+- Server-sent events carry workspace revisions. Customer pages load without the owner Scheduler bundle. The owner shell loads separately from the Scheduler and ledger, allowing cash controls and the recovery analyst to appear before those components finish loading.
 - No local SQLite database, `.env`, vendor source, or build output is committed. Business examples remain fictional; do not enter sensitive customer data in the public demonstration.
 
 ## Local Cloudflare verification
