@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "crewfloat",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-10-30",
+  "services": [{"binding": "API", "service": "crewfloat-api"}]
+}

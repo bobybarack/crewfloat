@@ -1,0 +1,31 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {spawn}from'node:child_process';import{mkdtempSync,rmSync}from'node:fs';import{tmpdir}from'node:os';import path from'node:path';import{createHash}from'node:crypto';
+import{DatabaseSync}from'node:sqlite';
+test('mock transport exercises actual sandbox routes, customer isolation and verified reversal boundary',async()=>{
+  const dir=mkdtempSync(path.join(tmpdir(),'crewfloat-sandbox-test-'));const port=4398;
+  const server=spawn(process.execPath,['--import','./tests/paypal-mock-loader.mjs','--import','tsx','server/index.ts'],{env:{...process.env,PORT:String(port),PAYMENT_MODE:'sandbox',PAYPAL_CLIENT_ID:'test-client',PAYPAL_CLIENT_SECRET:'test-secret',PAYPAL_WEBHOOK_ID:'test-webhook',CREWFLOAT_DB:path.join(dir,'state.sqlite'),AI_BASE_URL:'',AI_MODEL:'',AI_API_KEY:''},stdio:['ignore','pipe','pipe']});
+  try{await new Promise<void>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Server startup failed')),10000);server.stdout.on('data',data=>{if(data.toString().includes('CrewFloat API')){clearTimeout(timer);resolve();}});server.on('error',reject);});
+    let cookie='';const request=async(endpoint:string,body?:unknown,owner=true)=>{const res=await fetch(`http://127.0.0.1:${port}/api/${endpoint}`,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json','X-CrewFloat':'1',...(owner?{Cookie:cookie}:{})},body:body===undefined?undefined:JSON.stringify(body)});if(owner)cookie=res.headers.get('set-cookie')?.split(';')[0]||cookie;return{status:res.status,data:await res.json() as any,headers:res.headers};};
+    let state=(await request('state')).data.state;
+    const decision=(await request('agent',{revision:state.revision,question:'Compare my deposits.'})).data;assert.equal(decision.mode,'rules');
+    const linkResult=await request('payment-link',{revision:state.revision,jobId:'oak',decisionId:decision.id});assert.equal(linkResult.status,200);const token=new URL(linkResult.data.url).pathname.split('/')[2];
+    const customer=await request(`pay/${token}`,undefined,false);assert.equal(customer.data.job.deposit,160000);assert.equal(customer.headers.get('set-cookie'),null);assert.equal(customer.data.state,undefined);
+    assert.equal((await request('payment-link',{revision:0,jobId:'oak',decisionId:decision.id})).status,409);
+    assert.equal((await request('demo/payment',{jobId:'oak',revision:1,stage:'captured'})).status,403);
+    const order=await request(`pay/${token}/order`,{amount:1},false);assert.equal(order.status,200);assert.equal(new URL(order.data.url).hostname,'www.sandbox.paypal.com');
+    assert.equal((await request(`pay/${token}/capture`,{},false)).status,200);state=(await request('state')).data.state;assert.equal(state.receipts[0].gross,160000);assert.equal(state.receipts[0].reportedNet,155000);
+    assert.equal((await request('receipts/available',{revision:state.revision,receiptId:state.receipts[0].id,net:160000,reference:'mock test check',confirmed:true})).status,400);
+    state=(await request('receipts/available',{revision:state.revision,receiptId:state.receipts[0].id,net:155000,reference:'mock test check',confirmed:true})).data;
+    state=(await request('approve',{revision:state.revision})).data;assert.equal(state.approved.length,4);
+    const event={id:'WH-test-refund',event_type:'PAYMENT.CAPTURE.REFUNDED',resource:{id:'refund-id',supplementary_data:{related_ids:{order_id:state.receipts[0].reference}}}};
+    const webhook=async(signature:string)=>{const res=await fetch(`http://127.0.0.1:${port}/api/paypal/webhook`,{method:'POST',headers:{'Content-Type':'application/json','paypal-auth-algo':'SHA256withRSA','paypal-cert-url':'https://api.paypal.com/test','paypal-transmission-id':'transmission','paypal-transmission-time':'2026-10-13T00:00:00Z','paypal-transmission-sig':signature},body:JSON.stringify(event)});return{status:res.status,data:await res.json() as any};};
+    assert.equal((await webhook('invalid')).status,401);assert.equal((await request('state')).data.state.receipts[0].status,'available');
+    assert.equal((await webhook('valid-test-signature')).status,200);state=(await request('state')).data.state;assert.equal(state.receipts[0].status,'restricted');assert.equal(state.approved.length,4);
+    assert.equal((await request('approve',{revision:state.revision})).status,400);assert((await webhook('valid-test-signature')).data.duplicate);
+    const proof=(await request('proof')).data;const{sha256,...payload}=proof;assert.equal(createHash('sha256').update(JSON.stringify(payload)).digest('hex'),sha256);assert(proof.checks.some((c:any)=>c.passed===false));
+    state=(await request('cash',{revision:state.revision,opening:400000,reserve:100000,reconcile:true})).data;assert.equal(state.receipts[0].reconciled,true);
+    assert.equal((await request('paypal/capture',{jobId:'oak'})).status,400);state=(await request('state')).data.state;assert.equal(state.receipts[0].reconciled,false);assert.equal(state.approved.length,4);
+    const database=new DatabaseSync(path.join(dir,'state.sqlite'));database.prepare('UPDATE payment_links SET expires=0 WHERE token=?').run(token);database.close();assert.equal((await request(`pay/${token}`,undefined,false)).status,404);
+    assert.equal((await request(`pay/${'a'.repeat(64)}`,undefined,false)).status,404);
+    const stranger=await request('state',undefined,false);assert.equal(stranger.data.state.receipts.length,0);
+  }finally{server.kill();await new Promise(resolve=>server.once('exit',resolve));rmSync(dir,{recursive:true,force:true});}
+});

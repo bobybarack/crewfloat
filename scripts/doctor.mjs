@@ -1,0 +1,14 @@
+import'dotenv/config';
+import{existsSync}from'node:fs';
+const has=k=>Boolean(process.env[k]);
+console.log('CrewFloat configuration check (does not verify external integrations)');
+console.log(`Node: ${process.version}`);
+console.log(`Local .env: ${existsSync('.env')?'present':'absent'}`);
+console.log(`Payment mode: ${process.env.PAYMENT_MODE==='sandbox'?'sandbox':'simulation'}`);
+console.log(`PayPal credentials: ${has('PAYPAL_CLIENT_ID')&&has('PAYPAL_CLIENT_SECRET')?'configured':'missing'}`);
+console.log(`PayPal webhook ID: ${has('PAYPAL_WEBHOOK_ID')?'configured':'missing'}`);
+console.log(`AI provider: ${['AI_BASE_URL','AI_MODEL','AI_API_KEY'].every(has)?'configured':'not connected'}`);
+console.log(`Owner access: ${has('OWNER_ACCESS_CODE')?'configured':'disabled for local demo'}`);
+console.log(`Production build: ${existsSync('dist/index.html')?'present':'run npm run build'}`);
+console.log('Required evidence still includes actual sandbox/model calls, trial coverage, and contractor feedback.');
+if(process.env.PAYMENT_MODE==='sandbox'&&(!has('PAYPAL_CLIENT_ID')||!has('PAYPAL_CLIENT_SECRET')))process.exitCode=1;

@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {"types": ["node", "@cloudflare/workers-types"], "lib": ["ES2022"], "jsx": "react-jsx"},
+  "include": ["worker.ts", "worker-configuration.d.ts", "../server/app.ts", "../server/storage.ts", "../server/access.ts", "../server/agent.ts", "../server/paypal.ts", "../shared/model.ts"]
+}

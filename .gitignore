@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+data/
+test-results/
+.dev.vars*
+.wrangler/
+cloudflare/build/
+cloudflare/**/build/
+playwright-report/
+.DS_Store
