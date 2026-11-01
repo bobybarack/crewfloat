@@ -11,3 +11,4 @@ cloudflare/build/
 cloudflare/**/build/
 playwright-report/
 .DS_Store
+/build/
