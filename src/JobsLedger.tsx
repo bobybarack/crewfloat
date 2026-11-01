@@ -1,10 +1,11 @@
 import {useMemo} from 'react';
 import {AgGridReact} from 'ag-grid-react';
 import {AllCommunityModule, ModuleRegistry, themeQuartz, type ColDef} from 'ag-grid-community';
+import {hugeiconsGrid} from './grid-icons';
 import {money, type Job} from '../shared/model';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-const gridTheme = themeQuartz.withParams({ accentColor: '#21634f', backgroundColor: '#ffffff', foregroundColor: '#23362e', headerBackgroundColor: '#f5f7f5', borderColor: '#e1e7e2', fontFamily: 'Manrope Variable, sans-serif', fontSize: 12, rowHeight: 54, headerHeight: 40, wrapperBorderRadius: 0 });
+const gridTheme = themeQuartz.withoutPart('iconSet').withPart(hugeiconsGrid).withParams({ accentColor: '#21634f', backgroundColor: '#ffffff', foregroundColor: '#23362e', headerBackgroundColor: '#f5f7f5', borderColor: '#e1e7e2', fontFamily: 'Manrope Variable, sans-serif', fontSize: 12, rowHeight: 54, headerHeight: 40, wrapperBorderRadius: 0 });
 type LedgerRow = Job & {depositLabel: string; status: string};
 export default function JobsLedger({rows, query, onJob}: {rows: LedgerRow[]; query: string; onJob: (job: Job) => void}) {
   const cols = useMemo<ColDef[]>(() => [

@@ -4,6 +4,8 @@ Recover the week when a payment blocks work. CrewFloat compares which agreed cus
 
 Built with React, TypeScript, Express, SQLite, the actual Bryntum Scheduler trial, and AG Grid Community. [Competition audit](WIN_STRATEGY.md) · [Demo script](DEMO.md) · [Submission draft](SUBMISSION.md) · [November 5 early review](EARLY_REVIEW.md)
 
+All interface SVG icons use Hugeicons, including the favicon and grid/scheduler controls. `src/icons.tsx` provides the shared React icons. Regenerate the library SVG assets with `npm run icons:generate` after changing `scripts/generate-icons.mjs`.
+
 [Open the public demo](https://crewfloat.pages.dev) · [GitHub source](https://github.com/bobybarack/crewfloat)
 
 The Cloudflare deployment runs the fictional simulation and deterministic rules preview. It does not have PayPal or AI credentials. See [Cloudflare deployment](DEPLOYMENT.md) for architecture, commands and verification.

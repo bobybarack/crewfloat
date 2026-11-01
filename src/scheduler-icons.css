@@ -1,0 +1,33 @@
+/* Scheduler icon slots use SVGs rendered from Hugeicons, never icon fonts. */
+.timeline svg.b-grid-splitter-button-icon { fill: none; stroke: currentColor; }
+.timeline .b-icon::before,
+.timeline [class*="b-icon-"]::before,
+.timeline .b-sort-icon::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background: currentColor;
+  -webkit-mask: var(--crewfloat-icon-image, none) center / contain no-repeat;
+  mask: var(--crewfloat-icon-image, none) center / contain no-repeat;
+  vertical-align: -0.125em;
+}
+.timeline .b-sort-icon,
+.timeline .b-icon-up { --crewfloat-icon-image: url('/icons/hugeicons/arrow-up.svg'); }
+.timeline .b-icon-down { --crewfloat-icon-image: url('/icons/hugeicons/arrow-down.svg'); }
+.timeline .b-icon-collapse-gridregion,
+.timeline .b-icon-collapse-left,
+.timeline .b-icon-angle-left,
+.timeline .b-icon-scroll-left,
+.timeline .b-icon-previous { --crewfloat-icon-image: url('/icons/hugeicons/arrow-left.svg'); }
+.timeline .b-icon-expand-gridregion,
+.timeline .b-icon-collapse-right,
+.timeline .b-icon-angle-right,
+.timeline .b-icon-scroll-right,
+.timeline .b-icon-next { --crewfloat-icon-image: url('/icons/hugeicons/arrow-right.svg'); }
+.timeline .b-icon-filter { --crewfloat-icon-image: url('/icons/hugeicons/filter.svg'); }
+.timeline .b-icon-menu { --crewfloat-icon-image: url('/icons/hugeicons/menu.svg'); }
+.timeline .b-icon-menu-vertical { --crewfloat-icon-image: url('/icons/hugeicons/more.svg'); }
+.timeline .b-icon-close { --crewfloat-icon-image: url('/icons/hugeicons/close.svg'); }
+.timeline .b-icon-check { --crewfloat-icon-image: url('/icons/hugeicons/check.svg'); }
+.timeline .b-icon-spinner { --crewfloat-icon-image: url('/icons/hugeicons/loading.svg'); }

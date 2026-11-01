@@ -11,6 +11,7 @@
 - Seven browser scenarios against the local Cloudflare Pages/Worker runtime: approval/payment recovery; mobile workflow; scenario and customer scope; streamed reversal; stale review; owner login/logout (separate protected Node instance); untrusted job labels.
 - Additional Cloudflare API scenario checks visitor isolation, customer-link routing, forged internal headers, rollback after stale input, and simulation checkout restrictions.
 - Cloudflare TypeScript checks and minified Worker dry run; GitHub Actions validation and Cloudflare Git build.
+- Hugeicons migration: interface SVGs, favicon, AG Grid masks and Bryntum controls use Hugeicons. Local DOM/network audit found no other rendered SVG icons or Font Awesome requests, including the ledger filter popup. Scheduler sorting and existing workflow checks passed.
 - npm audit: zero reported vulnerabilities at this check.
 - `.env` created with private file permissions; credentials remain blank. Setup preserves existing secrets and does not print generated access codes.
 
@@ -18,7 +19,7 @@
 
 Owner APIs and financial evidence can be protected with a signed expiring access cookie. Listening beyond loopback requires a strong access code and HTTPS for a remote origin. Public customer checkout remains separate from the owner workspace.
 
-Customer checkout does not load the owner dashboard. The entry script is approximately 244 KB, and the owner application shell is approximately 76 KB. Bryntum Scheduler (approximately 3.5 MB) and AG Grid (approximately 1.2 MB) now load in separate asynchronous chunks, so they no longer block the cash controls and recovery analyst. These are build sizes before compression, not network-performance measurements. Versioned assets have immutable browser caching and are served directly by Pages.
+Customer checkout does not load the owner dashboard. The entry script is approximately 245 KB, and the owner application shell is approximately 38 KB. Bryntum Scheduler (approximately 3.5 MB) and AG Grid (approximately 1.2 MB) load in separate asynchronous chunks, so they no longer block the cash controls and recovery analyst. These are build sizes before compression, not network-performance measurements. Versioned assets have immutable browser caching and are served directly by Pages.
 
 Development bootstrap uses a single initial workspace request. Browser checks build and launch a separate test instance, without touching the active demo or using merchant/model credentials.
 
