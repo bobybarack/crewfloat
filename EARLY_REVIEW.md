@@ -1,6 +1,6 @@
 # CrewFloat early eligibility review
 
-Updated 29 October 2026, Africa/Nairobi.
+Updated 1 November 2026, Africa/Nairobi.
 
 ## Dates and scope
 
@@ -14,14 +14,14 @@ The final deadline remains **Thursday, November 12, 2026, 12:00 PST**, which is 
 
 | Order | Required evidence or action | Current workspace status |
 |---|---|---|
-| 1 | Configure merchant sandbox credentials and a model provider locally | PayPal client ID/secret and AI model/key are blank as checked October 29 |
+| 1 | Configure merchant sandbox credentials and a model provider locally | PayPal client ID/secret and AI model/key are blank as checked November 1 |
 | 2 | Observe an actual AI run: inspect cash, compare deposits, explain the selected job | Code and controlled-response tests exist; real provider run is pending |
 | 3 | Observe an actual PayPal buyer approval and server-verified capture | Code and controlled transport tests exist; real sandbox run is pending |
 | 4 | Show the payment-to-plan chain, including owner-confirmed usability | Simulation works; record the actual observed payment amount and status |
-| 5 | Provide public licensed source and reproducible run instructions or a hosted demo | Source/license/run guide are prepared; public access must be recorded |
+| 5 | Provide public licensed source and reproducible run instructions or a hosted demo | [Public source](https://github.com/bobybarack/crewfloat) and [hosted simulation](https://crewfloat.pages.dev) published November 1 |
 | 6 | Record and upload an under-three-minute working demonstration | Script prepared; actual video and URL are pending |
 | 7 | Explicitly name PayPal and AI in description, Built With and video | Draft updated; identify the actual model once verified |
-| 8 | Inspect the final repo and video for exposed secrets | Private .env is ignored; final public materials still require inspection |
+| 8 | Inspect the final repo and video for exposed secrets | Staged source passed Gitleaks before push; .env and local databases are excluded. Video inspection remains pending |
 | 9 | Confirm Bryntum availability through judging | Trial is integrated; December coverage is unconfirmed |
 | 10 | Submit the complete entry by November 5 for early review | Human submission action has not been performed in this workspace |
 
@@ -39,4 +39,4 @@ Resolve any organizer-identified eligibility gaps first. Continue improving user
 
 ## Current validation record
 
-The last full local validation was October 20: build, 20 Node tests and seven browser scenarios passed. Those results do not establish live PayPal/model success. This October 29 update changes submission documents; it does not represent a new code-test run.
+November 1 validation: production build, 20 Node tests, Cloudflare type checking, seven browser scenarios against the Cloudflare runtime and a further API isolation/routing scenario passed locally. Public deployment is recorded in [RELEASE_STATUS.md](RELEASE_STATUS.md). These results do not establish actual PayPal/model success.

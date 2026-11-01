@@ -2,6 +2,8 @@
 
 The public build runs **simulation mode** with a **deterministic rules preview**. No PayPal or model credentials are deployed. The protected Node server retains the sandbox PayPal and AI adapters; their real provider verification remains pending.
 
+Published November 1, 2026: [live demonstration](https://crewfloat.pages.dev) and [public repository](https://github.com/bobybarack/crewfloat). Cloudflare Pages is connected to the repository's `main` branch; production frontend builds run automatically after pushes. API changes require the separate deployment described below.
+
 ## Architecture
 
 - Cloudflare Pages project `crewfloat` serves the Vite production assets.

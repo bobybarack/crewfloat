@@ -1,6 +1,8 @@
 # CrewFloat submission draft
 
-Draft updated 29 October 2026. Target early eligibility review by November 5; finish the first submission package by November 4 as an internal target. This file is not a submitted entry. Replace missing evidence with observed integration results before publication.
+Draft updated 1 November 2026. Target early eligibility review by November 5; finish the first submission package by November 4 as an internal target. This file is not a submitted entry. Replace missing evidence with observed integration results before submitting.
+
+[Hosted simulation](https://crewfloat.pages.dev) · [Public source and run instructions](https://github.com/bobybarack/crewfloat). The public app uses fictional payments and deterministic rules; actual PayPal/AI execution is still pending.
 
 ## Name and tagline
 
@@ -34,6 +36,8 @@ The owner approves the schedule explicitly. The planner enforces crew skill, tim
 
 React and TypeScript provide the owner and customer experiences. Bryntum Scheduler displays current and hypothetical crew allocations; AG Grid Community presents the job ledger. Express and SQLite store workspaces, approvals, payment links, analysis runs, PayPal order identifiers and processed webhook IDs.
 
+The public simulation is hosted on Cloudflare Pages with a private API Worker and a separate SQLite-backed Durable Object per visitor workspace. The protected Node server retains the credential-dependent sandbox and model routes.
+
 The bounded planner searches a five-day example with two crews and at most eight jobs. It maximizes booked value subject to the entered constraints. Exact minimum-funding alternatives distinguish a cash shortage from a resource-window problem or optional proposals that could be replaced.
 
 An OpenAI-compatible tool-calling adapter provides the analyst. A deterministic preview remains explicitly labelled when no model is configured. Validated server routes control financial mutations independently of the model's prose.
@@ -59,7 +63,8 @@ After the first jobs are approved and $1,550 is simulated as usable, Oak and Elm
 | Tool-calling model adapter and authority boundaries | Controlled provider responses; real model run missing |
 | Orders, capture, verification and webhook handling | Controlled PayPal transport; real sandbox run missing |
 | Contractor impact | Broad problem research; interviews and measured outcomes missing |
-| Owner access for a hosted demonstration | Signed-cookie access and login/logout tests; no public host created |
+| Public source and hosted access | Public GitHub repository and Cloudflare simulation published; per-visitor storage and customer scopes tested |
+| Protected owner access for sandbox use | Signed-cookie access and login/logout tests on the Node server; real provider verification pending |
 | Trial/license coverage through judging | Needs confirmation |
 
 ## Category emphasis
@@ -79,4 +84,4 @@ Honorable mention story: **Most Impactful** and **Best Demo Delivery**, subject 
 - Record an under-three-minute YouTube demonstration using [DEMO.md](DEMO.md).
 - Recheck the official rules before 12 November 2026, 23:00 Nairobi.
 
-No repository, video, deployment or entry has been published by this draft. No customer, savings or partnership claim is implied.
+Public source and the simulation deployment are published. No video or Devpost entry has been submitted. No customer, savings or partnership claim is implied.
